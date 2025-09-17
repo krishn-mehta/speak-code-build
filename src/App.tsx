@@ -7,12 +7,12 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import MainInterface from "./pages/MainInterface";
 import DashboardAnalytics from "./pages/DashboardAnalytics";
 import DashboardTemplates from "./pages/DashboardTemplates";
 import DashboardBilling from "./pages/DashboardBilling";
 import DashboardTeam from "./pages/DashboardTeam";
 import DashboardSettings from "./pages/DashboardSettings";
-import CreateWebsite from "./pages/CreateWebsite";
 import ProjectDetail from "./pages/ProjectDetail";
 import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
@@ -46,6 +46,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/app" element={<MainInterface />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/analytics" element={<DashboardAnalytics />} />
             <Route path="/dashboard/templates" element={<DashboardTemplates />} />
@@ -53,7 +54,6 @@ const App = () => (
             <Route path="/dashboard/settings" element={<DashboardSettings />} />
             <Route path="/dashboard/billing" element={<DashboardBilling />} />
             <Route path="/dashboard/project/:id" element={<ProjectDetail />} />
-            <Route path="/create" element={<CreateWebsite />} />
             <Route path="/pricing" element={<PricingPage />} />
             
             {/* Legal Pages */}

@@ -20,7 +20,7 @@ const Hero = () => {
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild size="lg" className="text-lg px-8 py-6">
-                <Link to="/auth">Start Free - 100 Tokens</Link>
+                <Link to="/app">Start Free - 100 Tokens</Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
                 <Link to="/pricing">View Pricing</Link>

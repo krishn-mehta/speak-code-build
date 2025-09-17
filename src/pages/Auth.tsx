@@ -17,7 +17,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/app");
     }
   }, [user, navigate]);
 
@@ -26,7 +26,7 @@ const Auth = () => {
     setLoading(true);
     const { error } = await signIn(email, password);
     if (!error) {
-      navigate("/dashboard");
+          navigate("/app");
     }
     setLoading(false);
   };

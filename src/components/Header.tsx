@@ -31,7 +31,7 @@ const Header = () => {
             {user ? (
               <>
                 <TokenDisplay />
-                <Link to="/dashboard">
+                <Link to="/app">
                   <Button variant="ghost">Dashboard</Button>
                 </Link>
                 <Button variant="ghost" onClick={handleSignOut}>Sign Out</Button>
@@ -41,7 +41,7 @@ const Header = () => {
                 <Link to="/auth">
                   <Button variant="ghost">Login</Button>
                 </Link>
-                <Link to="/auth">
+                <Link to="/app">
                   <Button>Start Building</Button>
                 </Link>
               </>
