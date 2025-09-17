@@ -1,0 +1,7 @@
+project_id = "kryslqdkmfhbwcvoiuqv"
+
+[functions.chat-completion]
+verify_jwt = false
+
+[functions.website-generator]
+verify_jwt = true
