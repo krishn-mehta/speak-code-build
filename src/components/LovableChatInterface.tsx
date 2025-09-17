@@ -128,59 +128,62 @@ export const LovableChatInterface = ({ onWebsiteGenerated }: LovableChatInterfac
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-background border border-border/50 rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="border-b p-4">
+      <div className="border-b p-3 bg-card/50">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          <h2 className="font-semibold">AI Website Builder</h2>
-          <Badge variant="secondary" className="text-xs">
-            GPT-4 Powered
+          <div className="w-6 h-6 bg-primary/10 rounded flex items-center justify-center">
+            <Sparkles className="w-3 h-3 text-primary" />
+          </div>
+          <h2 className="font-medium text-sm">AI Website Builder</h2>
+          <Badge variant="secondary" className="text-xs px-2 py-0">
+            AI Powered
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Describe your website and I'll build it with React, TypeScript & Tailwind
+        <p className="text-xs text-muted-foreground mt-1">
+          Describe your website and I'll build it instantly
         </p>
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-3">
         {messages.length === 0 ? (
           <div className="space-y-6">
             {/* Welcome Message */}
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-primary" />
+            <div className="text-center py-6">
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Sparkles className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">
-                Welcome to Cyblick AI
+              <h3 className="text-lg font-semibold mb-2">
+                Welcome to Cyblick
               </h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                I can help you build professional websites using modern technologies. 
-                Just describe what you want and I'll create it for you!
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                Describe your website idea and I'll build it with React, TypeScript & Tailwind CSS.
               </p>
             </div>
 
             {/* Quick Start Prompts */}
             <div className="space-y-3">
-              <h4 className="font-medium text-sm text-muted-foreground">Quick Start</h4>
+              <h4 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">Quick Start</h4>
               <div className="grid grid-cols-1 gap-3">
                 {quickPrompts.map((prompt, index) => (
                   <Button
                     key={index}
                     variant="outline"
-                    className="p-4 h-auto text-left justify-start hover:bg-muted/50"
+                    className="p-3 h-auto text-left justify-start hover:bg-muted/50 border-border/50"
                     onClick={() => handleQuickPrompt(prompt.prompt)}
                     disabled={isGenerating || !hasEnoughTokens('generate_website')}
                   >
-                    <div className="flex items-start gap-3">
-                      <prompt.icon className="w-5 h-5 text-primary mt-0.5" />
+                    <div className="flex items-start gap-3 w-full">
+                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <prompt.icon className="w-4 h-4 text-primary" />
+                      </div>
                       <div>
-                        <div className="font-medium">{prompt.title}</div>
-                        <div className="text-sm text-muted-foreground line-clamp-2">
+                        <div className="font-medium text-sm">{prompt.title}</div>
+                        <div className="text-xs text-muted-foreground line-clamp-2 mt-1">
                           {prompt.prompt}
                         </div>
-                        <Badge variant="secondary" className="text-xs mt-2">
+                        <Badge variant="secondary" className="text-xs mt-2 px-2 py-0">
                           {getTokenCost('generate_website')} tokens
                         </Badge>
                       </div>
@@ -214,8 +217,8 @@ export const LovableChatInterface = ({ onWebsiteGenerated }: LovableChatInterfac
       </ScrollArea>
 
       {/* Input */}
-      <div className="border-t p-4">
-        <div className="flex gap-3">
+      <div className="border-t p-3 bg-card/30">
+        <div className="flex gap-2">
           <div className="flex-1">
             <Textarea
               ref={textareaRef}
@@ -223,7 +226,7 @@ export const LovableChatInterface = ({ onWebsiteGenerated }: LovableChatInterfac
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Describe the website you want to build..."
-              className="min-h-[60px] resize-none"
+              className="min-h-[48px] resize-none border-border/50 text-sm"
               disabled={isLoading || isGenerating}
             />
           </div>
@@ -231,7 +234,7 @@ export const LovableChatInterface = ({ onWebsiteGenerated }: LovableChatInterfac
             onClick={handleSendMessage}
             disabled={!input.trim() || isLoading || isGenerating}
             size="lg"
-            className="px-4"
+            className="px-3 h-[48px] bg-primary hover:bg-primary/90"
           >
             {isGenerating ? (
               <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -242,11 +245,11 @@ export const LovableChatInterface = ({ onWebsiteGenerated }: LovableChatInterfac
         </div>
         
         {/* Token info */}
-        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-          <span>Press Enter to send, Shift+Enter for new line</span>
+        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground/70">
+          <span>Press Enter to send • Shift+Enter for new line</span>
           <div className="flex items-center gap-1">
-            <Zap className="w-3 h-3" />
-            <span>Website generation costs {getTokenCost('generate_website')} tokens</span>
+            <Zap className="w-3 h-3 opacity-60" />
+            <span>{getTokenCost('generate_website')} tokens per website</span>
           </div>
         </div>
       </div>

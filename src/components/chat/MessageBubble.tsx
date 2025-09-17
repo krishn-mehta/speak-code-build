@@ -23,25 +23,25 @@ export const MessageBubble = ({ role, content, timestamp }: MessageBubbleProps) 
 
   return (
     <div className={cn(
-      "flex gap-3 mb-4",
+      "flex gap-3 mb-6",
       isUser ? "justify-end" : "justify-start"
     )}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-          <Bot className="w-4 h-4 text-primary-foreground" />
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <Bot className="w-4 h-4 text-primary" />
         </div>
       )}
       
       <div className={cn(
-        "max-w-[80%] rounded-lg px-4 py-2",
+        "max-w-[85%] rounded-xl px-4 py-3",
         isUser 
-          ? "bg-primary text-primary-foreground" 
-          : "bg-muted text-foreground"
+          ? "bg-primary text-primary-foreground shadow-sm" 
+          : "bg-muted/70 text-foreground border border-border/50"
       )}>
-        <p className="whitespace-pre-wrap">{content}</p>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
         {timestamp && (
           <div className={cn(
-            "text-xs mt-1 opacity-70",
+            "text-xs mt-2 opacity-60",
             isUser ? "text-primary-foreground" : "text-muted-foreground"
           )}>
             {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -50,7 +50,7 @@ export const MessageBubble = ({ role, content, timestamp }: MessageBubbleProps) 
       </div>
 
       {isUser && (
-        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center flex-shrink-0">
           <User className="w-4 h-4 text-secondary-foreground" />
         </div>
       )}

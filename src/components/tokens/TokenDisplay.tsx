@@ -54,12 +54,12 @@ export const TokenDisplay = () => {
   return (
     <Dialog open={showDetails} onOpenChange={setShowDetails}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 hover:shadow-sm">
+        <Button variant="outline" size="sm" className="gap-2 hover:shadow-sm h-8 px-3">
           <div className={`flex items-center gap-2 ${getTokenColor()}`}>
-            <Coins className="h-4 w-4" />
-            <span className="font-medium">{userTokens.current_tokens}</span>
+            <Coins className="h-3 h-3" />
+            <span className="font-medium text-sm">{userTokens?.current_tokens || 0}</span>
           </div>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="text-xs px-1.5 py-0">
             {currentPlan?.name || 'Free'}
           </Badge>
         </Button>

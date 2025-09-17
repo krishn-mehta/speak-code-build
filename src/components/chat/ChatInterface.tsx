@@ -302,30 +302,8 @@ export const ChatInterface = ({ conversationId, isLiveMode = false, onWebsiteGen
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with website toggle */}
-      {conversationWebsites.length > 0 && !isLiveMode && (
-        <div className="border-b bg-background p-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Globe className="w-3 h-3" />
-                {conversationWebsites.length} website{conversationWebsites.length !== 1 ? 's' : ''} generated
-              </Badge>
-            </div>
-            <Button
-              variant={showWebsites ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowWebsites(!showWebsites)}
-            >
-              <Wand2 className="w-4 h-4 mr-2" />
-              {showWebsites ? 'Show Chat' : 'Show Websites'}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <ScrollArea className="flex-1 p-6">
-        <div className="max-w-4xl mx-auto">
+      <ScrollArea className="flex-1 p-4">
+        <div className="max-w-3xl mx-auto">
           {showWebsites && conversationWebsites.length > 0 ? (
             // Show generated websites
             <div className="space-y-6">
@@ -450,12 +428,12 @@ export const ChatInterface = ({ conversationId, isLiveMode = false, onWebsiteGen
         </div>
       </ScrollArea>
 
-      <div className="border-t bg-background p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="border-t bg-background p-4">
+        <div className="max-w-3xl mx-auto">
           <ChatInput
             onSendMessage={handleSendMessage}
             isLoading={isLoading || websiteLoading}
-            placeholder={showWebsites ? "Modify your website or type '/generate' to create a new one..." : "Create a website (e.g., 'generate a portfolio site') or type '/generate' for templates..."}
+            placeholder={showWebsites ? "Modify your website or describe changes..." : "Describe the website you want to create..."}
           />
         </div>
       </div>

@@ -43,7 +43,7 @@ export const ChatInput = ({
   }, [message]);
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+    <form onSubmit={handleSubmit} className="flex gap-3 items-end">
       <div className="flex-1">
         <Textarea
           ref={textareaRef}
@@ -52,15 +52,15 @@ export const ChatInput = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled || isLoading}
-          className="resize-none min-h-[60px] max-h-[200px]"
+          className="resize-none min-h-[52px] max-h-[200px] border-border/50 focus:border-primary/50"
           rows={1}
         />
       </div>
       <Button
         type="submit"
         disabled={!message.trim() || isLoading || disabled}
-        size="lg"
-        className="px-4 h-[60px]"
+        size="default"
+        className="px-4 h-[52px] bg-primary hover:bg-primary/90"
       >
         {isLoading ? (
           <Loader2 className="w-4 h-4 animate-spin" />

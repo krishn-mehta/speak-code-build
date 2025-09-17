@@ -2,18 +2,21 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebsites } from "@/hooks/useWebsites";
-import { AppSidebar } from "@/components/AppSidebar";
-import { LovableChatInterface } from "@/components/LovableChatInterface";
-import { LovablePreview } from "@/components/LovablePreview";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ChatInterface } from "@/components/chat/ChatInterface";
+import { LivePreviewLayout } from "@/components/chat/LivePreviewLayout";
+import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { TokenDisplay } from "@/components/tokens/TokenDisplay";
 import {
-  Menu,
-  Play,
-  Square,
-  RotateCcw,
-  Share,
+  Grid,
+  MessageSquare,
+  Monitor,
+  Settings,
+  User,
+  Sparkles,
+  Plus,
   MoreHorizontal
 } from "lucide-react";
 
@@ -22,6 +25,8 @@ const LovableApp = () => {
   const navigate = useNavigate();
   const { websites } = useWebsites();
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"chat" | "live">("chat");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -33,10 +38,15 @@ const LovableApp = () => {
     setSelectedWebsiteId(websiteId);
   };
 
-  // Get the selected website or the latest one
-  const selectedWebsite = selectedWebsiteId 
-    ? websites.find(w => w.id === selectedWebsiteId) 
-    : websites[0];
+  const handleNewConversation = () => {
+    setSelectedConversationId(null);
+    setSelectedWebsiteId(null);
+  };
+
+  const handleSelectConversation = (conversationId: string) => {
+    setSelectedConversationId(conversationId);
+    setSelectedWebsiteId(null);
+  };
 
   if (loading) {
     return (
@@ -53,72 +63,91 @@ const LovableApp = () => {
     return null;
   }
 
+  // Live preview mode (like Lovable.dev)
+  if (viewMode === "live") {
+    return (
+      <LivePreviewLayout 
+        conversationId={selectedConversationId || undefined}
+        onModeChange={setViewMode}
+      />
+    );
+  }
+
+  // Main dashboard with sidebar
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          {/* Top Header */}
-          <header className="h-12 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4">
+    <div className="min-h-screen flex bg-background">
+      {/* Left Sidebar */}
+      <ChatSidebar
+        currentConversationId={selectedConversationId || undefined}
+        onSelectConversation={handleSelectConversation}
+        onNewConversation={handleNewConversation}
+      />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Header */}
+        <header className="h-14 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm px-6">
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              
-              {selectedWebsite && (
-                <div className="flex items-center gap-2 ml-4">
-                  <span className="text-sm font-medium">{selectedWebsite.title}</span>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Play className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Square className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <RotateCcw className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <div className="w-6 h-6 bg-gradient-primary rounded flex items-center justify-center">
+                <Sparkles className="w-3 h-3 text-white" />
+              </div>
+              <span className="font-semibold">Cyblick</span>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Share className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-              <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                Publish
-              </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </div>
-          </header>
-
-          {/* Main Content */}
-          <div className="flex-1">
-            <ResizablePanelGroup direction="horizontal" className="h-full">
-              {/* Chat Panel */}
-              <ResizablePanel defaultSize={40} minSize={30} maxSize={60}>
-                <LovableChatInterface onWebsiteGenerated={handleWebsiteGenerated} />
-              </ResizablePanel>
-
-              <ResizableHandle withHandle />
-
-              {/* Preview Panel */}
-              <ResizablePanel defaultSize={60} minSize={40}>
-                <LovablePreview
-                  website={selectedWebsite}
-                  websites={websites}
-                  onWebsiteChange={setSelectedWebsiteId}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
+            
+            {selectedConversationId && (
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-px bg-border" />
+                <Badge variant="secondary" className="text-xs">
+                  Active Chat
+                </Badge>
+              </div>
+            )}
           </div>
+
+          <div className="flex items-center gap-3">
+            <TokenDisplay />
+            
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <Button
+                variant={viewMode === "chat" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("chat")}
+                className="h-7 px-3 text-xs"
+              >
+                <Grid className="h-3 w-3 mr-1" />
+                Gallery
+              </Button>
+              <Button
+                variant={viewMode === "live" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("live")}
+                className="h-7 px-3 text-xs"
+              >
+                <Monitor className="h-3 w-3 mr-1" />
+                Live
+              </Button>
+            </div>
+
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Settings className="h-4 w-4" />
+            </Button>
+            
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        </header>
+
+        {/* Main Chat Interface */}
+        <div className="flex-1 overflow-hidden">
+          <ChatInterface 
+            conversationId={selectedConversationId || undefined}
+            onWebsiteGenerated={handleWebsiteGenerated}
+          />
         </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 
