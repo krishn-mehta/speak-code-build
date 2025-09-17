@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useWebsites } from "@/hooks/useWebsites";
 import { useTokens } from "@/hooks/useTokens";
 import { 
@@ -23,65 +23,55 @@ import {
   TrendingUp,
   Clock,
   Rocket,
-  Zap
+  Zap,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 
-// Mock data for demonstration - replace with real data from your hooks
-const mockProjects = [
-  {
-    id: "1",
-    name: "E-commerce Store",
-    description: "Modern online shopping experience with cart functionality",
-    url: "https://mystore.cyblick.app",
-    status: "published",
-    created_at: new Date("2024-01-15"),
-    updated_at: new Date("2024-01-20"),
-    thumbnail: "/api/placeholder/300/200",
-    views: 1234,
-    type: "E-commerce"
-  },
-  {
-    id: "2", 
-    name: "Portfolio Website",
-    description: "Clean and professional portfolio showcase",
-    url: "https://portfolio.cyblick.app",
-    status: "draft",
-    created_at: new Date("2024-01-10"),
-    updated_at: new Date("2024-01-18"),
-    thumbnail: "/api/placeholder/300/200",
-    views: 567,
-    type: "Portfolio"
-  },
-  {
-    id: "3",
-    name: "Landing Page",
-    description: "High-converting product landing page",
-    url: "https://landing.cyblick.app", 
-    status: "published",
-    created_at: new Date("2024-01-05"),
-    updated_at: new Date("2024-01-16"),
-    thumbnail: "/api/placeholder/300/200",
-    views: 2890,
-    type: "Landing"
-  }
-];
-
-const quickStats = [
-  { label: "Total Projects", value: "12", change: "+3", trend: "up" },
-  { label: "Published Sites", value: "8", change: "+2", trend: "up" },
-  { label: "Total Views", value: "15.2K", change: "+12%", trend: "up" },
-  { label: "This Month", value: "4", change: "New", trend: "neutral" }
-];
 
 export const ProjectsOverview = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [filterStatus, setFilterStatus] = useState<"all" | "published" | "draft">("all");
-  const { currentTokens, currentPlan } = useTokens();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  
+  const { websites, isLoading, deleteWebsite } = useWebsites();
+  const { userTokens, userSubscription } = useTokens();
 
-  const filteredProjects = mockProjects.filter(project => 
-    filterStatus === "all" || project.status === filterStatus
-  );
+  // Filter and search websites
+  const filteredWebsites = websites.filter(website => {
+    const matchesStatus = filterStatus === "all" || 
+      (filterStatus === "published" && website.metadata?.status === "published") ||
+      (filterStatus === "draft" && website.metadata?.status !== "published");
+    
+                const matchesSearch = !searchTerm || 
+      website.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      website.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesStatus && matchesSearch;
+  });
+
+  // Calculate real statistics
+  const totalProjects = websites.length;
+  const publishedSites = websites.filter(w => w.metadata?.status === "published").length;
+  const thisMonthProjects = websites.filter(w => {
+    const created = new Date(w.created_at);
+    const now = new Date();
+    return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+  }).length;
+
+  const quickStats = [
+    { label: "Total Projects", value: totalProjects.toString(), change: thisMonthProjects > 0 ? `+${thisMonthProjects}` : "0", trend: thisMonthProjects > 0 ? "up" as const : "neutral" as const },
+    { label: "Published Sites", value: publishedSites.toString(), change: `${Math.round((publishedSites / totalProjects) * 100) || 0}%`, trend: "up" as const },
+    { label: "Available Tokens", value: userTokens?.current_tokens?.toString() || "0", change: "Tokens", trend: "neutral" as const },
+    { label: "Current Plan", value: userSubscription?.plan_id || "Free", change: "Active", trend: "neutral" as const }
+  ];
+
+  const handleDeleteWebsite = async (websiteId: string) => {
+    setDeletingId(websiteId);
+    await deleteWebsite(websiteId);
+    setDeletingId(null);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -99,7 +89,7 @@ export const ProjectsOverview = () => {
           <div>
             <h2 className="text-2xl font-bold mb-2">Welcome back to Cyblick! 👋</h2>
             <p className="text-blue-100 mb-4">
-              Ready to build something amazing? You have {currentTokens} tokens available.
+              Ready to build something amazing? You have {userTokens?.current_tokens || 0} tokens available.
             </p>
             <div className="flex items-center space-x-4">
               <Button 
@@ -177,6 +167,8 @@ export const ProjectsOverview = () => {
             <input
               type="text"
               placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
             />
           </div>
@@ -200,8 +192,15 @@ export const ProjectsOverview = () => {
         </div>
       </div>
 
-      {/* Projects Grid/List */}
-      {filteredProjects.length === 0 ? (
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading your projects...</h3>
+          <p className="text-gray-500">Please wait while we fetch your websites</p>
+        </div>
+      ) : /* Projects Grid/List */
+      filteredWebsites.length === 0 ? (
         <div className="text-center py-12">
           <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
             <Globe className="w-12 h-12 text-gray-400" />
@@ -217,45 +216,43 @@ export const ProjectsOverview = () => {
         </div>
       ) : (
         <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-          {filteredProjects.map((project) => (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow">
+          {filteredWebsites.map((website) => (
+            <Card key={website.id} className="hover:shadow-lg transition-shadow">
               {viewMode === "grid" ? (
                 <>
                   {/* Grid View */}
                   <div className="relative">
-                    <img
-                      src={project.thumbnail}
-                      alt={project.name}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
+                    <div className="w-full h-48 bg-gradient-to-br from-blue-50 to-purple-50 rounded-t-lg flex items-center justify-center">
+                      <Globe className="w-16 h-16 text-gray-400" />
+                    </div>
                     <Badge 
-                      className={`absolute top-2 right-2 ${getStatusColor(project.status)}`}
+                      className={`absolute top-2 right-2 ${getStatusColor(website.metadata?.status || 'draft')}`}
                     >
-                      {project.status}
+                      {website.metadata?.status || 'draft'}
                     </Badge>
                   </div>
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg font-semibold truncate">
-                        {project.name}
+                        {website.title}
                       </CardTitle>
-                      <Badge variant="outline" className="text-xs">
-                        {project.type}
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {website.template_type}
                       </Badge>
                     </div>
                     <CardDescription className="text-sm text-gray-600 line-clamp-2">
-                      {project.description}
+                      {website.description || "No description"}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pb-2">
                     <div className="flex items-center justify-between text-sm text-gray-500">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {format(project.updated_at, "MMM d")}
+                        {format(new Date(website.updated_at), "MMM d")}
                       </div>
                       <div className="flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-1" />
-                        {project.views} views
+                        <Clock className="w-4 h-4 mr-1" />
+                        {format(new Date(website.created_at), "MMM d")}
                       </div>
                     </div>
                   </CardContent>
@@ -263,20 +260,40 @@ export const ProjectsOverview = () => {
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-2">
                         <Button size="sm" asChild>
-                          <Link to={`/dashboard/project/${project.id}`}>
+                          <Link to={`/dashboard/project/${website.id}`}>
                             <Edit className="w-4 h-4 mr-1" />
                             Edit
                           </Link>
                         </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={project.url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
+                        <Button variant="outline" size="sm">
+                          <Copy className="w-4 h-4" />
                         </Button>
                       </div>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm" disabled={deletingId === website.id}>
+                            {deletingId === website.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Website</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{website.title}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteWebsite(website.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </CardFooter>
                 </>
@@ -284,48 +301,66 @@ export const ProjectsOverview = () => {
                 /* List View */
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-4">
-                    <img
-                      src={project.thumbnail}
-                      alt={project.name}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center">
+                      <Globe className="w-8 h-8 text-gray-400" />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-lg font-semibold truncate">{project.name}</h3>
-                        <Badge className={getStatusColor(project.status)}>
-                          {project.status}
+                        <h3 className="text-lg font-semibold truncate">{website.title}</h3>
+                        <Badge className={getStatusColor(website.metadata?.status || 'draft')}>
+                          {website.metadata?.status || 'draft'}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 truncate mb-2">{project.description}</p>
+                      <p className="text-sm text-gray-600 truncate mb-2">{website.description || "No description"}</p>
                       <div className="flex items-center space-x-4 text-xs text-gray-500">
                         <span className="flex items-center">
                           <Calendar className="w-3 h-3 mr-1" />
-                          {format(project.updated_at, "MMM d, yyyy")}
+                          {format(new Date(website.updated_at), "MMM d, yyyy")}
                         </span>
                         <span className="flex items-center">
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                          {project.views} views
+                          <Clock className="w-3 h-3 mr-1" />
+                          Created {format(new Date(website.created_at), "MMM d")}
                         </span>
-                        <Badge variant="outline" className="text-xs">
-                          {project.type}
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {website.template_type}
                         </Badge>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button size="sm" asChild>
-                        <Link to={`/dashboard/project/${project.id}`}>
+                        <Link to={`/dashboard/project/${website.id}`}>
                           <Edit className="w-4 h-4 mr-1" />
                           Edit
                         </Link>
                       </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={project.url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                      <Button variant="outline" size="sm">
+                        <Copy className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm" disabled={deletingId === website.id}>
+                            {deletingId === website.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Website</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{website.title}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteWebsite(website.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </CardContent>
@@ -348,16 +383,16 @@ export const ProjectsOverview = () => {
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span>Tokens Used</span>
-                <span>{100 - currentTokens}/100</span>
+                <span>{(userTokens?.total_earned_this_period || 100) - (userTokens?.current_tokens || 0)}/{userTokens?.total_earned_this_period || 100}</span>
               </div>
-              <Progress value={(100 - currentTokens)} className="h-2" />
+              <Progress value={((userTokens?.total_earned_this_period || 100) - (userTokens?.current_tokens || 0)) / (userTokens?.total_earned_this_period || 100) * 100} className="h-2" />
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span>Projects Created</span>
-                <span>4/10</span>
+                <span>{totalProjects}/{userSubscription?.plan_id === 'pro' ? '∞' : '10'}</span>
               </div>
-              <Progress value={40} className="h-2" />
+              <Progress value={userSubscription?.plan_id === 'pro' ? 0 : (totalProjects / 10) * 100} className="h-2" />
             </div>
           </div>
           <div className="mt-4 text-center">

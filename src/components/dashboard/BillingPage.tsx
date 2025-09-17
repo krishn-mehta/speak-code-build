@@ -120,11 +120,11 @@ const usageHistory = [
 ];
 
 export const BillingPage = () => {
-  const { currentTokens, currentPlan } = useTokens();
+  const { userTokens, userSubscription } = useTokens();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
   const currentPlanData = pricingPlans.find(p => p.current) || pricingPlans[0];
-  const tokenUsagePercentage = ((currentPlanData.tokens - currentTokens) / currentPlanData.tokens) * 100;
+  const tokenUsagePercentage = ((currentPlanData.tokens - (userTokens?.current_tokens || 0)) / currentPlanData.tokens) * 100;
 
   return (
     <div className="space-y-6">
@@ -138,14 +138,14 @@ export const BillingPage = () => {
           <CardContent>
             <div className="flex items-center justify-between mb-2">
               <span className="text-2xl font-bold">{currentPlanData.name}</span>
-              <Badge variant={currentPlan === "Free" ? "secondary" : "default"}>
-                {currentPlan}
+              <Badge variant={userSubscription?.plan_id === "free" ? "secondary" : "default"}>
+                {userSubscription?.plan_id || "Free"}
               </Badge>
             </div>
             <p className="text-sm text-gray-600">
               ${currentPlanData.price[billingCycle]}/{billingCycle === "monthly" ? "month" : "year"}
             </p>
-            {currentPlan !== "Free" && (
+            {userSubscription?.plan_id !== "free" && (
               <div className="mt-4 text-xs text-gray-500">
                 Next billing: January 15, 2024
               </div>
@@ -160,10 +160,10 @@ export const BillingPage = () => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-2xl font-bold text-blue-600">{currentTokens}</span>
+              <span className="text-2xl font-bold text-blue-600">{userTokens?.current_tokens || 0}</span>
               <Zap className="w-6 h-6 text-blue-500" />
             </div>
-            <Progress value={(currentTokens / currentPlanData.tokens) * 100} className="mb-2" />
+            <Progress value={((userTokens?.current_tokens || 0) / currentPlanData.tokens) * 100} className="mb-2" />
             <p className="text-sm text-gray-600">
               of {currentPlanData.tokens} monthly tokens
             </p>
@@ -178,7 +178,7 @@ export const BillingPage = () => {
           <CardContent>
             <div className="flex items-center justify-between mb-2">
               <span className="text-2xl font-bold text-purple-600">
-                {currentPlanData.tokens - currentTokens}
+                {currentPlanData.tokens - (userTokens?.current_tokens || 0)}
               </span>
               <Globe className="w-6 h-6 text-purple-500" />
             </div>

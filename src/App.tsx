@@ -13,6 +13,7 @@ import DashboardBilling from "./pages/DashboardBilling";
 import DashboardTeam from "./pages/DashboardTeam";
 import DashboardSettings from "./pages/DashboardSettings";
 import CreateWebsite from "./pages/CreateWebsite";
+import ProjectDetail from "./pages/ProjectDetail";
 import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
 
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/dashboard/team" element={<DashboardTeam />} />
             <Route path="/dashboard/settings" element={<DashboardSettings />} />
             <Route path="/dashboard/billing" element={<DashboardBilling />} />
+            <Route path="/dashboard/project/:id" element={<ProjectDetail />} />
             <Route path="/create" element={<CreateWebsite />} />
             <Route path="/pricing" element={<PricingPage />} />
             

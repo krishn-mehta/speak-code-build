@@ -33,7 +33,7 @@ const navigation = [
 
 export const DashboardLayout = () => {
   const { user, signOut } = useAuth();
-  const { currentTokens, currentPlan } = useTokens();
+  const { userTokens, userSubscription } = useTokens();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -109,13 +109,13 @@ export const DashboardLayout = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">Tokens</p>
-                  <p className="text-2xl font-bold text-blue-600">{currentTokens}</p>
+                  <p className="text-2xl font-bold text-blue-600">{userTokens?.current_tokens || 0}</p>
                 </div>
                 <Sparkles className="w-8 h-8 text-blue-500" />
               </div>
               <div className="mt-2">
                 <Badge variant="outline" className="text-xs">
-                  {currentPlan} Plan
+                  {userSubscription?.plan_id || "Free"} Plan
                 </Badge>
               </div>
               <Button size="sm" className="w-full mt-3" asChild>

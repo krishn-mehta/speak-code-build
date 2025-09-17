@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useWebsites } from "@/hooks/useWebsites";
+import { useTokens } from "@/hooks/useTokens";
 import { ArrowLeft, Sparkles, Globe, Palette, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +17,9 @@ const CreateWebsite = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  
+  const { generateWebsite } = useWebsites();
+  const { hasEnoughTokens } = useTokens();
   
   const [formData, setFormData] = useState({
     projectName: "",
@@ -78,25 +83,49 @@ const CreateWebsite = () => {
       return;
     }
 
+    if (!hasEnoughTokens('generate_website')) {
+      toast({
+        title: "Insufficient Tokens",
+        description: "You don't have enough tokens to generate a website. Please upgrade your plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
-      // Here we would typically save the project data and start the AI generation
-      // For now, we'll simulate the process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create detailed prompt from form data
+      let prompt = `Create a ${formData.websiteType || 'custom'} website called "${formData.projectName}". ${formData.description}`;
       
-      toast({
-        title: "Project Created!",
-        description: "Your website project has been created. Starting AI generation...",
-      });
+      if (formData.style) {
+        prompt += ` The design should be ${formData.style}.`;
+      }
       
-      // Navigate to the project editor (we'll create this next)
-      navigate("/project/new");
+      if (formData.features.length > 0) {
+        prompt += ` Include these features: ${formData.features.join(', ')}.`;
+      }
+      
+      // Generate the website
+      const website = await generateWebsite('', prompt, formData.websiteType || 'custom', formData.projectName);
+      
+      if (website) {
+        toast({
+          title: "Website Generated!",
+          description: "Your website has been created successfully. Redirecting to editor...",
+        });
+        
+        // Navigate to the project editor
+        navigate(`/dashboard/project/${website.id}`);
+      } else {
+        throw new Error('Failed to generate website');
+      }
       
     } catch (error) {
+      console.error('Error generating website:', error);
       toast({
-        title: "Error",
-        description: "Failed to create project. Please try again.",
+        title: "Generation Failed",
+        description: "Failed to generate your website. Please try again.",
         variant: "destructive",
       });
     } finally {

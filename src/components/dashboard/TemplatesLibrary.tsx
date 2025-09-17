@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useWebsites } from "@/hooks/useWebsites";
+import { useToast } from "@/hooks/use-toast";
+import { useTokens } from "@/hooks/useTokens";
 import { 
   Search, 
   Filter, 
@@ -130,6 +133,12 @@ export const TemplatesLibrary = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("popular");
+  const [usingTemplate, setUsingTemplate] = useState<string | null>(null);
+  
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { generateWebsite } = useWebsites();
+  const { hasEnoughTokens } = useTokens();
 
   const filteredTemplates = templates.filter(template => {
     const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
@@ -162,6 +171,45 @@ export const TemplatesLibrary = () => {
       case "blog": return Code;
       case "landing": return Rocket;
       default: return Globe;
+    }
+  };
+
+  const handleUseTemplate = async (template: typeof templates[0]) => {
+    if (!hasEnoughTokens('generate_website')) {
+      toast({
+        title: "Insufficient Tokens",
+        description: "You don't have enough tokens to generate a website. Please upgrade your plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUsingTemplate(template.id);
+    
+    try {
+      // Create a prompt based on the template
+      const prompt = `Create a ${template.name.toLowerCase()} using the template "${template.name}". ${template.description}. Include the following features: ${template.tags.join(', ')}.`;
+      
+      // Generate the website
+      const website = await generateWebsite('', prompt, template.category, template.name);
+      
+      if (website) {
+        toast({
+          title: "Template Applied!",
+          description: `${template.name} has been generated. Redirecting to editor...`,
+        });
+        
+        // Navigate to the project editor
+        navigate(`/dashboard/project/${website.id}`);
+      }
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate website from template. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUsingTemplate(null);
     }
   };
 
@@ -216,8 +264,13 @@ export const TemplatesLibrary = () => {
                     {template.downloads}
                   </div>
                 </div>
-                <Button size="sm" className="w-full mt-3">
-                  Use Template
+                <Button 
+                  size="sm" 
+                  className="w-full mt-3"
+                  onClick={() => handleUseTemplate(template)}
+                  disabled={usingTemplate === template.id || !hasEnoughTokens('generate_website')}
+                >
+                  {usingTemplate === template.id ? "Generating..." : "Use Template"}
                 </Button>
               </CardContent>
             </Card>
@@ -290,9 +343,13 @@ export const TemplatesLibrary = () => {
                           <Eye className="w-4 h-4 mr-1" />
                           Preview
                         </Button>
-                        <Button size="sm">
+                        <Button 
+                          size="sm"
+                          onClick={() => handleUseTemplate(template)}
+                          disabled={usingTemplate === template.id || !hasEnoughTokens('generate_website')}
+                        >
                           <Play className="w-4 h-4 mr-1" />
-                          Use Template
+                          {usingTemplate === template.id ? "Generating..." : "Use Template"}
                         </Button>
                       </div>
                     </div>
@@ -358,9 +415,13 @@ export const TemplatesLibrary = () => {
 
                     {/* Action Buttons */}
                     <div className="flex space-x-2">
-                      <Button className="flex-1">
+                      <Button 
+                        className="flex-1"
+                        onClick={() => handleUseTemplate(template)}
+                        disabled={usingTemplate === template.id || !hasEnoughTokens('generate_website')}
+                      >
                         <Rocket className="w-4 h-4 mr-2" />
-                        Use Template
+                        {usingTemplate === template.id ? "Generating..." : "Use Template"}
                       </Button>
                       <Button variant="outline" size="sm" asChild>
                         <a href={template.preview_url} target="_blank" rel="noopener noreferrer">
@@ -392,9 +453,11 @@ export const TemplatesLibrary = () => {
           <p className="text-purple-100 mb-6">
             Start from scratch and build exactly what you envision with our AI-powered website builder.
           </p>
-          <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
-            <Rocket className="w-5 h-5 mr-2" />
-            Create Custom Website
+          <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100" asChild>
+            <Link to="/create">
+              <Rocket className="w-5 h-5 mr-2" />
+              Create Custom Website
+            </Link>
           </Button>
         </CardContent>
       </Card>

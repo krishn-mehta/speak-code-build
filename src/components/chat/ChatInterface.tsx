@@ -114,12 +114,20 @@ export const ChatInterface = ({ conversationId, isLiveMode = false, onWebsiteGen
     
     // Check token availability for website operations
     if (isGeneration && !hasEnoughTokens('generate_website')) {
-      toast.error(`Not enough tokens! You need ${getTokenCost('generate_website')} tokens to generate a website.`);
+      toast({
+        title: "Insufficient Tokens",
+        description: `You need ${getTokenCost('generate_website')} tokens to generate a website.`,
+        variant: "destructive",
+      });
       return;
     }
     
     if (isIteration && conversationWebsites.length > 0 && !hasEnoughTokens('iterate_website')) {
-      toast.error(`Not enough tokens! You need ${getTokenCost('iterate_website')} tokens to modify a website.`);
+      toast({
+        title: "Insufficient Tokens",
+        description: `You need ${getTokenCost('iterate_website')} tokens to modify a website.`,
+        variant: "destructive",
+      });
       return;
     }
     
