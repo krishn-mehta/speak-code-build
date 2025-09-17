@@ -62,7 +62,7 @@ export const ProjectsOverview = () => {
 
   const quickStats = [
     { label: "Total Projects", value: totalProjects.toString(), change: thisMonthProjects > 0 ? `+${thisMonthProjects}` : "0", trend: thisMonthProjects > 0 ? "up" as const : "neutral" as const },
-    { label: "Published Sites", value: publishedSites.toString(), change: `${Math.round((publishedSites / totalProjects) * 100) || 0}%`, trend: "up" as const },
+    { label: "Published Sites", value: publishedSites.toString(), change: `${Math.round((publishedSites / totalProjects) * 100) || 0}%`, trend: "neutral" as const },
     { label: "Available Tokens", value: userTokens?.current_tokens?.toString() || "0", change: "Tokens", trend: "neutral" as const },
     { label: "Current Plan", value: userSubscription?.plan_id || "Free", change: "Active", trend: "neutral" as const }
   ];
@@ -134,8 +134,7 @@ export const ProjectsOverview = () => {
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
                 <div className={`flex items-center text-sm ${
-                  stat.trend === 'up' ? 'text-green-600' : 
-                  stat.trend === 'down' ? 'text-red-600' : 'text-gray-500'
+                  stat.trend === 'up' ? 'text-green-600' : 'text-gray-500'
                 }`}>
                   {stat.trend === 'up' && <TrendingUp className="w-4 h-4 mr-1" />}
                   {stat.change}

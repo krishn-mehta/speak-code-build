@@ -31,7 +31,11 @@ const navigation = [
   { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
 ];
 
-export const DashboardLayout = () => {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, signOut } = useAuth();
   const { userTokens, userSubscription } = useTokens();
   const location = useLocation();
@@ -201,7 +205,7 @@ export const DashboardLayout = () => {
 
         {/* Page content */}
         <main className="flex-1 p-6">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>
